@@ -1,0 +1,12 @@
+Development Strategy
+1. Create gui that takes input and outputs something
+2. Plan out priorities
+3. Make "volunteer" class
+4. Begin the priority assignment
+
+POST:
+1. Save stuff in template file to be loaded
+	Load template button
+2. Create menus for ease of use: https://docs.oracle.com/javase/tutorial/uiswing/components/menu.html
+	- Load saved templates
+	- Clear data

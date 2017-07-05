@@ -1,0 +1,21 @@
+Work on algorithm for special event schedule
+Priority Queue:
+	1: Every volunteer is working at all times
+	2: All major stations are filled, parachute (if present)
+	4: Assisting at stations filled
+	5: Face painting: clause - moved to priority 3 if facepainting has happened, try to guarantee 2-3 in a row
+				   and multiple volunteers here, close if not
+	6: Minimum priority: Break, but special case where it is handled at the end
+VOlunteer object, 
+ fields: bool isTeen, bool takenBreak, string[] schedule, string lastStation, Set(String) lowPriorityShifts
+Station object, 
+ fields: int priority, str name, int(?) time
+ methods: changePriority(int priority), comparable
+Custom VolunteerPriorityQueue object? Or just other methods for the overall class:
+	Facepainting mode: Check all lastStations after every round, shifts priority if any volunteer has 
+	lastStation facepainting.
+		Maybe make the field lastThreeStations and remove all facepainting at end if can't be done
+		three times in a row?
+		Maybe make this modular also: Can guarantee 2 at facepainting, or just 1
+	Break mode: After done, iterate through volunteers and see which ones don't have break, replace one
+	of their low priority jobs with break here
