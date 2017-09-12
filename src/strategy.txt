@@ -1,12 +1,31 @@
 Development Strategy
 1. Create gui that takes input and outputs something
 2. Plan out priorities
-3. Make "volunteer" class
-4. Begin the priority assignment
+3. Make "volunteer" class as specified
+4. Make system to verify the request is possible
+5. Begin the priority assignment (assign break, then rest, make sure two people don't switch spots)
 
-POST:
-1. Save stuff in template file to be loaded
-	Load template button
-2. Create menus for ease of use: https://docs.oracle.com/javase/tutorial/uiswing/components/menu.html
+---------------
+POST: 
+
+Necessary:
+- GUI
+- Facepainting shifts (teen implementation)
+- Full day (two breaks for a volunteer who's marked as full day, preferably adjacent)
+
+Bonus:
+
+ 1. Shuffle button - redoes assignment with newly shuffled volunteers
+ 2. Display vacancies in the schedule
+	2b. Highlight particular volunteers
+ 3. Save event in template file to be loaded
+	Load template button, or create new
+ 4. Create menus for ease of use: https://docs.oracle.com/javase/tutorial/uiswing/components/menu.html
 	- Load saved templates
 	- Clear data
+	
+IDEAS FOR IMPLEMENTATION
+- Represent each timeslot as an array of slots to fill
+- Clone a priorityqueue of volunteers for each timeslot, ensure all are assigned
+  + Assign highest priority first
+- Have a modifiable array of Set<Volunteer> that stores the last person at each station, ensure no swaps
