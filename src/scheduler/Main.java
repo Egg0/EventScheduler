@@ -8,10 +8,11 @@ import java.util.PriorityQueue;
 
 public class Main {
 	public static void main (String[] args) {
-		int numVolunteers = 8; // Total volunteers
+		int numVolunteers = 12; // Total volunteers
 		int numShifts = 7; // Number of shifts in the day (standard morning shift = 7)
 		
-		PriorityQueue<Volunteer> volunteers = new PriorityQueue<Volunteer>(); 
+		// Construct the set of volunteers (TODO: have names be inputted in final version)
+		HashSet<Volunteer> volunteers = new HashSet<Volunteer>(); 
 		for (int i = 0; i < numVolunteers; i++) {
 			volunteers.add(new Volunteer(numShifts));
 		}
@@ -20,17 +21,19 @@ public class Main {
 		Pair<Pair<String[], HashSet<Integer>>, Pair<Integer, Integer>> header = quickSchedule(); //makeScheduleArray();
 		// Prints the contents, and then the indices of the unique stations
 		printHeader(header);
-		// Prints volunteer names
-		System.out.println(volunteers);
 		// Verify the schedule can be reasonably filled
 		verifyScheduleValid(header.left().left(), header.right().left(), header.right().right(), numVolunteers);
 		
 		// Now all the information is there, start filling out a schedule.
 		// TODO: Construct the schedule
+		Schedule schedule = new Schedule(header.left().left(), header.left().right(), volunteers, numShifts);
 		
 		// First assign each volunteer to a break, updating the volunteer's fields and the overall schedule.
 		// Header data reminder: ((scheduleHeader, necessaryStations), (uniqueStations, breakShifts))
 		// TODO: Assign to break
+		schedule.scheduleBreaks();
+		// Prints volunteer names
+		System.out.println(volunteers);
 		
 		// Now, go through the 2-D array one timeslot at a time, filling in volunteers according to the priority
 		// queue. Assign them to important stations first, then to unimportant. Use volunteer methods:
@@ -85,7 +88,7 @@ public class Main {
 		System.out.print("Max volunteers on break? ");
 		int brek = Integer.parseInt(input.nextLine());
 		for (int i = 0; i < brek; i++) {
-			stations.add("break");
+			stations.add("br");
 			totalStations++;
 		}
 		
@@ -105,7 +108,7 @@ public class Main {
 	// 3 unique stations and 9 total, plus 2 break 
 	// Pair layout: ((schedule, importantIndices), (uniqueStations, breakCount))
 	private static Pair<Pair<String[], HashSet<Integer>>, Pair<Integer, Integer>> quickSchedule() {
-		String[] result = new String[11];
+		String[] result = new String[12];
 		HashSet<Integer> important = new HashSet<Integer>();
 		result[0] = "s1";
 		result[1] = "s1";
@@ -118,10 +121,11 @@ public class Main {
 		result[8] = "s3";
 		result[9] = "br";
 		result[10] = "br";
+		result[11] = "br";
 		important.add(0);
 		important.add(4);
 		important.add(7);
-		return new Pair(new Pair(result, important), new Pair(3, 2));
+		return new Pair(new Pair(result, important), new Pair(3, 3));
 	}
 	
 	private static void printHeader(Pair<Pair<String[], HashSet<Integer>>, Pair<Integer, Integer>> header) {

@@ -13,9 +13,9 @@ public class Volunteer implements Comparable<Volunteer> {
 	private boolean isTeen;  		// UNUSED - for facepainting
 	private int lastStation;  		// UNUSED - The index of the last station worked at
 	private int[] schedule;  		// An array of the volunteer's shifts in order (use map for names)
-	int breakTime;          		// The index of the volunteer's break timeslot
-	int requiredShifts;  			// The number of high priority shifts, for comparable
-	int totalShifts;  				// Number of shifts assigned
+	private int breakTime;          		// The index of the volunteer's break timeslot
+	private int requiredShifts;  			// The number of high priority shifts, for comparable
+	private int totalShifts;  				// Number of shifts assigned
 	private static int numVolunteers = 0; // Number of volunteers created, for naming
 	
 	// Constructs a new volunteer with the given name, saying if it is a teen, 
@@ -25,7 +25,6 @@ public class Volunteer implements Comparable<Volunteer> {
 		this.isTeen = isTeen;
 		this.schedule = new int[scheduleSize];
 		this.lastStation = -1;
-		this.breakTime = -1;
 		this.requiredShifts = 0;
 		this.totalShifts = 0;
 		numVolunteers++;
@@ -52,6 +51,12 @@ public class Volunteer implements Comparable<Volunteer> {
 			totalShifts++;
 		}
 		schedule[time] = shift;
+	}
+	
+	// just inserts the shift, but updates break index for internal use
+	public void insertBreak(int time, int shift) {
+		breakTime = time;
+		insertShift(time, shift);
 	}
 	
 	// Same as insertshift, but increments requiredShift count also
@@ -85,7 +90,7 @@ public class Volunteer implements Comparable<Volunteer> {
 	}
 	
 	public String toString() {
-		return "{" + name + ":" + this.requiredShifts + "}";
+		return "{" + name + ":" + this.requiredShifts + "," + this.totalShifts + "[" + this.breakTime + "]}";
 	}
 
 }
