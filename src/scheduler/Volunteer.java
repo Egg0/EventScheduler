@@ -82,6 +82,10 @@ public class Volunteer implements Comparable<Volunteer> {
 		return schedule.clone();
 	}
 	
+	public int getBreak() {
+		return breakTime;
+	}
+	
 	@Override
 	// A volunteer with more required shifts is given a larger value (lower priority).
 	// This ensures they are assigned more filler shifts in the assignment process.
@@ -90,7 +94,7 @@ public class Volunteer implements Comparable<Volunteer> {
 	}
 	
 	public String toString() {
-		return "{" + name + ":" + this.requiredShifts + "," + this.totalShifts + "[" + this.breakTime + "]}";
+		return "{" + name + ":" + this.requiredShifts + "/" + this.totalShifts + "}";
 	}
 
 }

@@ -8,25 +8,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.TreeSet;
 
 public class Schedule {
 // TODO: make methods to build the schedule: One to assign break, one to assign rest? maybe a shuffle method?
+	private HashSet<Volunteer> volunteers;
 	private HashMap<Volunteer, Integer> volToId;	// convert a volunteer into their int ID
 	private HashMap<Integer, Volunteer> idToVol;	// convert a int (volunteer ID) into the volunteer
 	private HashMap<String, TreeSet<Integer>> stationToIndex;	// convert a station name into the list of indices
 	private HashMap<Integer, String> indexToStation;  // convert a station index into the station name 
 	
 	private int timeslotCount;
-	private HashSet<Integer> importantShifts;	// The list of important indices
+	private HashSet<Integer> priorityShifts;	// The list of priority indices
+	Set<Integer> nonPriorityShifts;				// Nonpriority indices
 	private String[] header; 	// Header provided by client
 	private int[][] schedule;	// The actual schedule
 	
 	// Construct a schedule with a header, important indices, a list of volunteers, and the number of timeslots
 	public Schedule(String[] header, HashSet<Integer> important, HashSet<Volunteer> volunteers, int timeslotCount) {
 		this.header = header;
-		this.importantShifts = important;
+		this.priorityShifts = important;
 		this.timeslotCount = timeslotCount;
+		this.volunteers = volunteers;
 		
 		// Insert volunteers into hashmap
 		volToId = new HashMap<Volunteer, Integer>();
@@ -54,6 +59,14 @@ public class Schedule {
 			indexToStation.put(i, header[i]);
 		}
 		// System.out.println(stationToIndex);
+		// Make a set of non-priority shifts
+		nonPriorityShifts = indexToStation.keySet();
+		for (int i : stationToIndex.get("br")) {
+			nonPriorityShifts.remove(i);
+		}
+		for (int i : priorityShifts) {
+			nonPriorityShifts.remove(i);
+		}
 		
 		// Finally, create the shell of the schedule.
 		schedule = new int[timeslotCount][header.length];
@@ -65,7 +78,6 @@ public class Schedule {
 	// TODO: Eventually add support for volunteers working full days, giving them two breaks before the end
 	public void scheduleBreaks() {
 		Iterator<Volunteer> vols = volToId.keySet().iterator();
-		int totalVolunteers = volToId.keySet().size();
 		TreeSet<Integer> breakSet = stationToIndex.get("br");
 		ArrayList<Integer> breakIndices = new ArrayList<Integer>(breakSet);
 		HashMap<Integer, ArrayList<Integer>> emptySlots = new HashMap<Integer, ArrayList<Integer>>(); // empty slots
@@ -73,7 +85,7 @@ public class Schedule {
 		int minTime = 2;  // Avoid assigning break before two shifts have passed 
 		int maxTime = timeslotCount - 2;  // Don't make the last shift have break
 		
-		System.out.println("Assigning breaks from slot " + minTime + " to " + maxTime);
+		//System.out.println("Assigning breaks from slot " + minTime + " to " + maxTime);
 		
 		// Assign middle slots: max / 2 and max / 2 + 1 if odd, only max / 2 if even
 		int slotA = timeslotCount / 2;
@@ -82,16 +94,14 @@ public class Schedule {
 		// Now fill them completely
 		for (int idx : breakIndices) {
 			assignBreak(vols.next(), timeslotCount / 2, idx);
-			totalVolunteers--;
-			if (totalVolunteers == 0) {
+			if (!vols.hasNext()) {
 				break;
 			}
 		}
 		if (slotB > 0) {
 			for (int idx : breakIndices) {
 				assignBreak(vols.next(), timeslotCount / 2 + 1, idx);
-				totalVolunteers--;
-				if (totalVolunteers == 0) {
+				if (!vols.hasNext()) {
 					break;
 				}
 			}
@@ -103,7 +113,7 @@ public class Schedule {
 		boolean flip = true;  // To go one direction at a time
 		boolean aDone = false;  // Cutting the loop if a is done
 		boolean bDone = false;  // Same for b
-		while (totalVolunteers > 0) {
+		while (vols.hasNext()) {
 			if (flip && !bDone) { // Go forward
 				slotB++;
 				if (slotB > maxTime) {
@@ -114,7 +124,9 @@ public class Schedule {
 				// Assign through maxbreaks
 				for (int i = 0; i < maxBreaks; i++) {
 					assignBreak(vols.next(), slotB, breakIndices.get(i));
-					totalVolunteers--;
+					if (!vols.hasNext()) {
+						break;
+					}
 				}
 				// Add to empty slots map for later
 				ArrayList<Integer> empties = new ArrayList<Integer>();
@@ -136,7 +148,9 @@ public class Schedule {
 				// Assign through maxbreaks
 				for (int i = 0; i < maxBreaks; i++) {
 					assignBreak(vols.next(), slotA, breakIndices.get(i));
-					totalVolunteers--;
+					if (!vols.hasNext()) {
+						break;
+					}
 				}
 				// Add to empty slots map for later
 				ArrayList<Integer> empties = new ArrayList<Integer>();
@@ -155,27 +169,85 @@ public class Schedule {
 		// 1. Scan through stations and fill any with empty slots (use emptySlots to find out what has space)
 		// 2. Fill in slot 2 if still more volunteers
 		// 3. At this point the last 2 slots cannot be filled (unless full day), so print an error message
-		System.out.println(emptySlots);
-		if (totalVolunteers > 0) {
+		//System.out.println(emptySlots);
+		while (vols.hasNext()) {
 			// Step 1
 			if (!emptySlots.isEmpty()) {
 				for (int time : emptySlots.keySet()) {
 					ArrayList<Integer> indices = emptySlots.get(time);
-					for (int i = 0; i < indices.size() && totalVolunteers > 0; i++) {
+					for (int i = 0; i < indices.size() && vols.hasNext(); i++) {
 						assignBreak(vols.next(), time, indices.get(i));
-						totalVolunteers--;
 					}
-					if (totalVolunteers == 0) {
+					if (!vols.hasNext()) {
 						break;
-					} else if (totalVolunteers < 0) {
-						System.out.print("Error, should not be less than 0 volunteers");
 					}
 				}
+				emptySlots.clear();
+			}
+			// Step 2
+			for (int i = 0; i < breakIndices.size(); i++) {
+				if (!vols.hasNext()) {
+					break;
+				} else {
+					assignBreak(vols.next(), 1, breakIndices.get(i));
+				}
+			}
+			if (vols.hasNext()) {
+				System.out.println("Too many volunteers to fit in break slots, exiting...");
+				return;
 			}
 		}
+	}
+	
+	// The meat of the program.
+	// Uses all the volunteer info to schedule a day, using a priority queue and updating priorities based
+	// on required shifts. 
+	public void schedule () {
+		// Step 1: Set up a priorityQueue of volunteers
+		PriorityQueue<Volunteer> vols = new PriorityQueue<Volunteer>(volToId.keySet());
+		HashSet<Volunteer> volsOnBreak = new HashSet<Volunteer>();  // Volunteers on break to be ignored for a loop
 		
-		
-		System.out.print(toString());
+		// Now, for each row in the schedule, fill it first with priorityShifts, then nonPriorityShifts
+		for (int i = 0; i < schedule.length; i++) {
+			// Priority first, assume there are enough volunteers
+			for (int pshift : priorityShifts) {
+				Volunteer next = vols.poll();
+				assignPriority(next, i, pshift);
+			}
+			// Now non-priority, cut short if all volunteers used
+			for (int shift : nonPriorityShifts) {
+				Volunteer next = vols.poll();
+				if (next == null) {
+					break;
+				}
+				assign(next, i, shift);
+			}
+			// Queue exhausted, reset it, accounting for volunteers on break.
+			// Only this if it's not the last iteration
+			if (i + 1 != schedule.length) {
+				// Add volsOnBreak back to the volunteers set
+				for (Volunteer v : volsOnBreak) {
+					volunteers.add(v);
+				}
+				volsOnBreak.clear();
+				// Remove if on break at time i + 1
+				int time = i + 1;
+				Iterator<Volunteer> itr = volunteers.iterator();
+				while (itr.hasNext()) {
+					Volunteer v = itr.next();
+					if (v.getBreak() == time) {
+						volsOnBreak.add(v);
+						itr.remove();
+					}
+				}
+				vols = new PriorityQueue<Volunteer>(volunteers);
+//				System.out.println(vols);
+//				System.out.println(toString());
+			}
+		}
+//		while (!vols.isEmpty()) {
+//			System.out.println(vols.poll());
+//		}
 	}
 	
 	// Simply inserts the volunteer into the station by looking up their id and putting into the schedule
@@ -183,6 +255,12 @@ public class Schedule {
 	private void assign (Volunteer v, int timeSlot, int station) {
 		//System.out.println("assigning " + v + " to " + timeSlot + "," + station);
 		v.insertShift(timeSlot, station);
+		schedule[timeSlot][station] = volToId.get(v);
+	}
+	
+	private void assignPriority (Volunteer v, int timeSlot, int station) {
+		//System.out.println("assigning " + v + " to " + timeSlot + "," + station);
+		v.insertPriorityShift(timeSlot, station);
 		schedule[timeSlot][station] = volToId.get(v);
 	}
 	

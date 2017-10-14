@@ -8,7 +8,7 @@ import java.util.PriorityQueue;
 
 public class Main {
 	public static void main (String[] args) {
-		int numVolunteers = 12; // Total volunteers
+		int numVolunteers = 9; // Total volunteers
 		int numShifts = 7; // Number of shifts in the day (standard morning shift = 7)
 		
 		// Construct the set of volunteers (TODO: have names be inputted in final version)
@@ -25,25 +25,28 @@ public class Main {
 		verifyScheduleValid(header.left().left(), header.right().left(), header.right().right(), numVolunteers);
 		
 		// Now all the information is there, start filling out a schedule.
-		// TODO: Construct the schedule
 		Schedule schedule = new Schedule(header.left().left(), header.left().right(), volunteers, numShifts);
 		
 		// First assign each volunteer to a break, updating the volunteer's fields and the overall schedule.
 		// Header data reminder: ((scheduleHeader, necessaryStations), (uniqueStations, breakShifts))
-		// TODO: Assign to break
 		schedule.scheduleBreaks();
-		// Prints volunteer names
-		System.out.println(volunteers);
 		
 		// Now, go through the 2-D array one timeslot at a time, filling in volunteers according to the priority
 		// queue. Assign them to important stations first, then to unimportant. Use volunteer methods:
-		// 
+		schedule.schedule();
 		
+		System.out.println(schedule);
 	}
 	
 	// Verify that the number of volunteers can likely fit the whole schedule
 	// based on number of volunteers vs. number of unique stations minus break total
+	// pre: Not too many volunteers (TODO: FIX?)
 	private static void verifyScheduleValid(String[] scheduleHeader, int uniqueStations, int breakNum, int volunteerNum) {
+		if (volunteerNum > scheduleHeader.length - breakNum) {
+			System.out.println("Too many volunteers - " + volunteerNum + " for " 
+								+ (scheduleHeader.length - breakNum) + " slots");
+			return;
+		}
 		int minVolunteers = uniqueStations + breakNum;
 		if (volunteerNum > minVolunteers) {
 			System.out.println(volunteerNum + " volunteers can fill the required " 
