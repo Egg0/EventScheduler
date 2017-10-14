@@ -8,6 +8,8 @@
 
 package scheduler;
 
+import java.util.Random;
+
 public class Volunteer implements Comparable<Volunteer> {
 	private String name;  			// Their name
 	private boolean isTeen;  		// UNUSED - for facepainting
@@ -90,6 +92,10 @@ public class Volunteer implements Comparable<Volunteer> {
 	// A volunteer with more required shifts is given a larger value (lower priority).
 	// This ensures they are assigned more filler shifts in the assignment process.
 	public int compareTo(Volunteer other) {
+		if (this.requiredShifts == other.requiredShifts) {
+			Random r = new Random();
+			return r.nextInt();
+		}
 		return this.requiredShifts - other.requiredShifts;
 	}
 	

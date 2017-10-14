@@ -77,7 +77,11 @@ public class Schedule {
 	//		schedule is not already filled
 	// TODO: Eventually add support for volunteers working full days, giving them two breaks before the end
 	public void scheduleBreaks() {
-		Iterator<Volunteer> vols = volToId.keySet().iterator();
+		TreeSet<Volunteer> volTree = new TreeSet<Volunteer>(); 
+		for (Volunteer v : volunteers) {
+			volTree.add(v);
+		}
+		Iterator<Volunteer> vols = volTree.iterator();
 		TreeSet<Integer> breakSet = stationToIndex.get("br");
 		ArrayList<Integer> breakIndices = new ArrayList<Integer>(breakSet);
 		HashMap<Integer, ArrayList<Integer>> emptySlots = new HashMap<Integer, ArrayList<Integer>>(); // empty slots
@@ -200,8 +204,9 @@ public class Schedule {
 	}
 	
 	// The meat of the program.
-	// Uses all the volunteer info to schedule a day, using a priority queue and updating priorities based
-	// on required shifts. 
+	// Uses all the volunteer info to schedule a day, using a priority queue 
+	// and updating priorities based on required shifts
+	// TODO: Make it so a volunteer cannot have two shifts in a row!
 	public void schedule () {
 		// Step 1: Set up a priorityQueue of volunteers
 		PriorityQueue<Volunteer> vols = new PriorityQueue<Volunteer>(volToId.keySet());
